@@ -6,3 +6,4 @@ ID,Function
 5,Solve ODEs Function By RungeKutta4
 6,Solve ODEs Function By Euler Method
 7,Solve ODEs Function By Newton Method
+8,Solve ODEs Function By Bisection Method
