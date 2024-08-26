@@ -19,6 +19,10 @@ def promt_user(id):
         name = str(input("Name of method: "))
         if name == "euler":
             plot_solution("solution_eulermethod.csv")
+        else:
+            print("Comming soon")
+    else:
+        raise TypeError("TypeError")
 
 
 def open_csv_file(name):
@@ -31,16 +35,32 @@ def open_csv_file(name):
 
 
 def plot_solution(name):
+    """Open file solution.csv. Then return 2 arrays, its will be t and y
+
+    Args:
+        name (string): _description_
+    """
     with open(name, "r") as file:
         reader = csv.DictReader(file)
         rows = []
         for row in reader:
             rows.append(row)
-    t = []
-    y = 0
+    tpoints = []
+    ypoints = []
+    for i in range(len(rows)):
+        t = rows[i]["t"]
+        y = rows[i]["y"]
+        tpoints.append(float(t))
+        ypoints.append(float(y))
+
+    # We can use this list comprehension:
+    # tpoints.extend([float(rows[i]["t"]) for i in range(len(rows))]) or tpoints = [float(rows[i]["t"]) for i in range(len(rows))]
+    # ypoints.extend([float(rows[i]["y"]) for i in range(len(rows))]) or ypoints = [float(rows[i]["y"]) for i in range(len(rows))]
 
     fig, ax = plt.subplots()
-    ax.plot(t, y)
+    plt.plot(tpoints, ypoints, "b-o")
+    plt.xlabel("$t")
+    plt.ylabel("$y")
     plt.show()
 
 
@@ -163,6 +183,7 @@ def solveODEs(f, tspan, y0, h, solver):
 
 def save_solution():
     t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep(), euler_method)
+
     with open("solution_eulermethod.csv", "w", newline="") as writefile:
         header = ["t", "y"]
         writer = csv.DictWriter(writefile, fieldnames=header)
@@ -173,7 +194,7 @@ def save_solution():
 
 def main():
     print(open_csv_file("menu.csv"))
-    promt_user(int(input()))
+    promt_user(int(input("Input the ID: ")))
 
 
 if __name__ == "__main__":
