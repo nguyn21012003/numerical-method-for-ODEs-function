@@ -4,25 +4,34 @@ import matplotlib.pyplot as plt
 import csv
 import re
 import os
+import sys
 from tabulate import tabulate
 from rich import print
 
 
 def promt_user(id):
-    if id == 1:
-        a = write_initValue(initialValue())
-        return a
-    elif id == 8:
-        a = save_solution()
-        print(open_csv_file("solution_eulermethod.csv"))
-    elif id == 9:
-        name = str(input("Name of method: "))
-        if name == "euler":
-            plot_solution("solution_eulermethod.csv")
-        else:
-            print("Comming soon")
-    else:
-        raise TypeError("TypeError")
+    match id:
+        case 1:
+            a = write_initValue(initialValue())
+            return a
+        case 2:
+            pass
+        case 6:
+            a = save_solution("euler")
+            print(open_csv_file("solution_euler.csv"))
+        case 8:
+            name = str(input("Name of method: "))
+            match name:
+                case "euler":
+                    plot_solution("solution_euler.csv")
+                case "solution":
+                    plot_solution("solution.csv")
+                case _:
+                    print("Comming soon")
+        case 9:
+            a = save_solution("solution")
+        case _:
+            raise TypeError("TypeError")
 
 
 def open_csv_file(name):
@@ -120,6 +129,42 @@ def write_initValue(initValue):
             return tabulate(rows, headers="keys", tablefmt="rounded_grid")
 
 
+def true_solution_function(t):
+    return float(np.exp(t) + t + 1)
+
+
+def true_solution(f, tspan, y0, h):
+    t = np.arange(tspan[0], tspan[1] + h, h)
+    y = np.zeros(len(t))
+    y[0] = y0
+
+    for n in range(len(t)):
+        y[n] = f(t[n])
+
+    return t, y
+
+
+def local_error(epsilon):
+    return float(epsilon)
+
+
+# Create ODE function
+# name = input("Input the function f(t,y): ").replace("^", "**")
+def ode_function(t, y):
+    """Define an initial value problem (mean the problem function for eg: y'=t*y)
+
+    Args:
+        t (float): Time variables
+        y (float): Dependent variables
+
+    Returns:
+        _float_: _description_
+    """
+    # Input is obeyed by the rule y' = f(t,y). Just only need input the f(t,y)
+    f = lambda t, y: eval(sys.argv[1].replace("^", "**").replace(" ", ""))
+    return f(t, y)
+
+
 def tspan_init(args):
     """_summary_
     Input the string for eg [1,2], return a tuple type.
@@ -130,8 +175,8 @@ def tspan_init(args):
         tuple: _description_
     """
     pattern = re.sub(r"[\([{})\]]", "", args)
-    a, b = pattern.split(",")
-    return float(a), float(b)
+    t0, tend = pattern.split(",")
+    return float(t0), float(tend)
 
 
 def y0_init():
@@ -144,29 +189,18 @@ def hstep():
     return h
 
 
+# Solvers
 def euler_method(f, tn, yn, h):
     return yn + h * f(tn, yn)
 
 
-def ode_function(t, y):
-    """Define an initial value problem (mean the problem function for eg: y'=t*y)
-
-    Args:
-        t (float): _description_
-        y (float): _description_
-
-    Returns:
-        _float_: _description_
-    """
-    return t * y
-
-
+# Solve the ODE function
 def solveODEs(f, tspan, y0, h, solver):
     """_summary_
 
     Args:
         f (type): is the init function that we need calculation
-        tspan (list): Is the interval of t from a to b
+        tspan (list): Is the interval of t from t0 to tend
         y0 (float): Description
         h (float): is the step that calculate from t0 to t1. This can get from the hstep() function
         solver (type): is any solver like Euler Method or RK4 Method
@@ -174,27 +208,46 @@ def solveODEs(f, tspan, y0, h, solver):
     t = np.arange(tspan[0], tspan[1] + h, h)
     y = np.zeros(len(t))  # Create an array with all the array[i] is zero
     y[0] = y0  # y0 is taken from y0_init() function
-
     for n in range(len(t) - 1):
         y[n + 1] = solver(f, t[n], y[n], h)
 
     return t, y
 
 
-def save_solution():
-    t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep(), euler_method)
+def save_solution(name):
 
-    with open("solution_eulermethod.csv", "w", newline="") as writefile:
-        header = ["t", "y"]
-        writer = csv.DictWriter(writefile, fieldnames=header)
-        writer.writeheader()
-        for i in range(len(t)):
-            writer.writerow({"t": f"{float(t[i])}", "y": f"{float(y[i])}"})
+    match name:
+        case "euler":
+            solver = euler_method
+            namefile = "solution_" + name + ".csv"
+
+            t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep(), solver)
+            with open(namefile, "w", newline="") as writefile:
+                header = ["t", "y"]
+                writer = csv.DictWriter(writefile, fieldnames=header)
+                writer.writeheader()
+                for i in range(len(t)):
+                    writer.writerow({"t": f"{float(t[i]):2.3f}", "y": f"{float(y[i])}"})
+
+        case "solution":
+            namefile = name + ".csv"
+            t, y = true_solution(true_solution_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep())
+            with open(namefile, "w", newline="") as writefile:
+                header = ["t", "y"]
+                writer = csv.DictWriter(writefile, fieldnames=header)
+                writer.writeheader()
+                for i in range(len(t)):
+                    writer.writerow({"t": f"{float(t[i]):2.3f}", "y": f"{float(y[i])}"})
+        case _:
+            print("Comming soon!")
 
 
 def main():
-    print(open_csv_file("menu.csv"))
-    promt_user(int(input("Input the ID: ")))
+    if len(sys.argv) <= 50:
+        print(open_csv_file("menu.csv"))
+        promt_user(int(input("Input the ID: ")))
+    elif len(sys.argv) >= 1000:
+        sys.exit("Too many command-line arguments")
 
 
 if __name__ == "__main__":
