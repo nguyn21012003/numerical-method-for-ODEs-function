@@ -18,7 +18,7 @@ $ git clone https://github.com/nguyn21012003/numerical-method-for-ODEs-function.
 
 ## Tutorial
 
-Ex1: Find y(1) for y' = y - x; y(0) = 2, using Euler's meethod with h = 0.25
+Ex1: Find y(1) for y' = y - x; y(0) = 2, using Euler's meethod with h = 0.1
 
 In your terminal:
 
