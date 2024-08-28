@@ -14,8 +14,9 @@ def promt_user(id):
         case 1:
             a = write_initValue(initialValue())
             return a
-        case 2:
-            pass
+        case 4:
+            a = save_solution("rungekutta4")
+            print(open_csv_file("solution_rungekutta4.csv"))
         case 5:
             a = save_solution("euler")
             print(open_csv_file("solution_euler.csv"))
@@ -24,6 +25,8 @@ def promt_user(id):
             match name:
                 case "euler":
                     plot_solution("solution_euler.csv")
+                case "rk4":
+                    plot_solution("solution_rungekutta4.csv")
                 case "solution":
                     plot_solution("solution.csv")
                 case _:
@@ -194,6 +197,18 @@ def euler_method(f, tn, yn, h):
     return yn + h * f(tn, yn)
 
 
+def rk4_method(f, tn, yn, h):
+    k1 = f(tn, yn)
+    k2 = f(tn + 0.5 * h, yn + 0.5 * h * k1)
+    k3 = f(tn + 0.5 * h, yn + 0.5 * h * k2)
+    k4 = f(tn + h, yn + h * k3)
+    return yn + h / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+
+def bisection_method(f, tn, yn, h):
+    pass
+
+
 # Solve the ODE function
 def solveODEs(f, tspan, y0, h, solver):
     """_summary_
@@ -221,7 +236,7 @@ def save_solution(name):
             solver = euler_method
             namefile = "solution_" + name + ".csv"
 
-            t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep(), solver)
+            t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: [0,1]): ")), y0_init(), hstep(), solver)
             with open(namefile, "w", newline="") as writefile:
                 header = ["t", "y"]
                 writer = csv.DictWriter(writefile, fieldnames=header)
@@ -231,7 +246,17 @@ def save_solution(name):
 
         case "solution":
             namefile = name + ".csv"
-            t, y = true_solution(true_solution_function, tspan_init(input("Input the interval of t (eg: '1,2'): ")), y0_init(), hstep())
+            t, y = true_solution(true_solution_function, tspan_init(input("Input the interval of t (eg: [0,1]): ")), y0_init(), hstep())
+            with open(namefile, "w", newline="") as writefile:
+                header = ["t", "y"]
+                writer = csv.DictWriter(writefile, fieldnames=header)
+                writer.writeheader()
+                for i in range(len(t)):
+                    writer.writerow({"t": f"{float(t[i]):2.3f}", "y": f"{float(y[i])}"})
+        case "rungekutta4":
+            solver = rk4_method
+            namefile = "solution_" + name + ".csv"
+            t, y = solveODEs(ode_function, tspan_init(input("Input the interval of t (eg: [0,1]): ")), y0_init(), hstep(), solver)
             with open(namefile, "w", newline="") as writefile:
                 header = ["t", "y"]
                 writer = csv.DictWriter(writefile, fieldnames=header)
