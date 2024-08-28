@@ -16,7 +16,7 @@ def promt_user(id):
             return a
         case 2:
             pass
-        case 6:
+        case 5:
             a = save_solution("euler")
             print(open_csv_file("solution_euler.csv"))
         case 8:
@@ -130,7 +130,7 @@ def write_initValue(initValue):
 
 
 def true_solution_function(t):
-    return float(np.exp(t) + t + 1)
+    return float(np.tan(t))
 
 
 def true_solution(f, tspan, y0, h):
@@ -246,7 +246,7 @@ def main():
     if len(sys.argv) <= 50:
         print(open_csv_file("menu.csv"))
         promt_user(int(input("Input the ID: ")))
-    elif len(sys.argv) >= 1000:
+    elif len(sys.argv) >= 100:
         sys.exit("Too many command-line arguments")
 
 
